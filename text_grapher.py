@@ -27,7 +27,8 @@ class CrimeMining:
     def remove_noisy(self, content):
         p1 = re.compile(r'（[^）]*）')
         p2 = re.compile(r'\([^\)]*\)')
-        return p2.sub('', p1.sub('', content))
+        p3 = re.compile(r'【[^】]*】')
+        return  p3.sub('',p2.sub('', p1.sub('', content)))
 
     '''收集命名实体'''
     def collect_ners(self, words, postags):
@@ -39,7 +40,7 @@ class CrimeMining:
 
     '''对文章进行分句处理'''
     def seg_content(self, content):
-        return [sentence for sentence in re.split(r'[？?！!。；;：:\n\r]', content) if sentence]
+        return [sentence for sentence in re.split(r'[？?！!。；;：:\n\r,，\s|]', content) if sentence]
 
     '''对句子进行分词，词性标注处理'''
     def process_sent(self, sent):
@@ -395,5 +396,6 @@ content8 = '''
 
 
 '''
+content9 = """沪浙打通首条省界“断头路”：通勤从30分钟缩短到3分钟！,新华社上海12月28日电(记者 王辰阳)连接上海市金山区和浙江省嘉善县的叶新公路新建工程28日开通。这是沪浙毗邻地区打通的首条省界“断头路”。据悉，道路通车后可有效缓解320国道的交通压力，将上海枫泾至浙江姚庄的出行时间从30分钟缩短为3分钟，给两地居民往来带来便利。     据介绍，叶新公路新建工程西起浙江省界，东至朱枫公路，全长2.24公里。该段道路设计时速为80公里/小时，双向六车道。除了道路开通，西塘来往枫泾的跨省公交线路也同步开通，将进一步提升区域公共交通的服务水平。    叶新公路新建工程的项目建设，充分体现了长三角一体化的协同优势。以道路在沪浙交界处的潮里泾大桥为例，金山、嘉善两地协商形成了“双方审批、共同出资、一方代建”的合作模式。该桥建设投入资金约5亿元，两地共同承担，由嘉善代建设。    上海市交通委主任谢峰表示，打通省界“断头路”项目是长三角一体化国家战略的重要组成部分。截至目前，上海已打通4条省界“断头路”，复兴路至曙光路、朱吕公路至善新公路等项目仍在建设中，争取尽早建成发挥社会效益。 【编辑:朱延静】"""
 handler = CrimeMining()
-handler.main(content8)
+handler.main(content9)
