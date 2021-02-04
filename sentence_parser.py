@@ -5,21 +5,57 @@
 # Date: 18-3-10
 import os
 from pyltp import Segmentor, Postagger, Parser, NamedEntityRecognizer
+from LAC import LAC
+from ddparser import DDParser
+from extract import FineGrainedInfo
+from jieba.analyse import TFIDF
+import jieba
+import jieba.posseg
+class Keyword(TFIDF):
+    def __init__(self, idf_path=None):
+        super().__init__(idf_path)
+
+    def extract_tags2(self, words, topK=20, allowPOS=(), withFlag=False):
+        allowPOS = frozenset(allowPOS)
+        freq = {}
+        for w in words:
+            if allowPOS:
+                if w[1] not in allowPOS:
+                    continue
+                elif not withFlag:
+                    w = w[0]
+            wc = w[0] if allowPOS and withFlag else w
+            if len(wc.strip()) < 2 or wc.lower() in self.stop_words:
+                continue
+            freq[w] = freq.get(w, 0.0) + 1.0
+
+        fre = freq.copy()
+        fre = sorted(fre.items(), key=lambda fre:fre[1], reverse=True)
+        total = sum(freq.values())
+        for k in freq:
+            kw = k.word if allowPOS and withFlag else k
+            freq[k] *= self.idf_freq.get(kw, self.median_idf) / total
+
+        tags = sorted(freq, key=freq.__getitem__, reverse=True)
+        return (tags[:topK], fre)
 
 class LtpParser():
     def __init__(self):
         LTP_DIR = "./ltp_data"
+        self.lac = LAC(mode='lac')
+        self.lac.load_customization('data/custom.txt', sep=None)
+        self.ddparser = DDParser()
+        self.fine_info = FineGrainedInfo
+        self.keyword = Keyword()
+        self.jieba = jieba
+        self.posseg = jieba.posseg
         self.segmentor = Segmentor(os.path.join(LTP_DIR, "cws.model"))
 
-
         self.postagger = Postagger(model_path=os.path.join(LTP_DIR, "pos.model"))
-        # self.postagger.load()
 
         self.parser = Parser(os.path.join(LTP_DIR, "parser.model"))
-        # self.parser.load()
 
         self.recognizer = NamedEntityRecognizer(os.path.join(LTP_DIR, "ner.model"))
-        # self.recognizer.load()
 
     '''ltp基本操作'''
     def basic_parser(self, words):
@@ -94,7 +130,7 @@ class LtpParser():
                 subs = entity.split(' ')[:-1]
                 start_index = subs[0].split('_')[1]
                 end_index = subs[-1].split('_')[1]
-                entity_dict['stat_index'] = start_index
+                entity_dict['start_index'] = start_index
                 entity_dict['end_index'] = end_index
                 if start_index == entity_dict['end_index']:
                     consist = [words[int(start_index)] + '/' + postags[int(start_index)]]
@@ -156,7 +192,7 @@ class LtpParser():
         child_dict_list = self.build_parse_child_dict(words, postags, tuples)
         return tuples, child_dict_list
 
-    '''基础语言分析'''
+    '''基础语言分析,ltp标注词性还输出命名实体识别,导致两者不一样,所以rebuild转换'''
     def basic_process(self, sentence):
         words = list(self.segmentor.segment(sentence))
         postags, netags = self.basic_parser(words)

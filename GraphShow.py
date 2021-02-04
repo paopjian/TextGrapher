@@ -5,6 +5,8 @@
 # Date: 18-7-24
 
 '''创建展示页面'''
+
+
 class GraphShow():
     def __init__(self):
         self.base = '''
@@ -59,8 +61,10 @@ class GraphShow():
     </body>
     </html>
     '''
+
     '''读取文件数据'''
-    def create_page(self, events):
+
+    def create_page(self, events,path='graph_show.html'):
         nodes = []
         for event in events:
             nodes.append(event[0])
@@ -83,12 +87,13 @@ class GraphShow():
             data['to'] = node_dict.get(edge[1])
             data_edges.append(data)
 
-        self.create_html(data_nodes, data_edges)
+        self.create_html(data_nodes, data_edges,path)
         return
 
     '''生成html文件'''
-    def create_html(self, data_nodes, data_edges):
-        f = open('graph_show.html', 'w+',encoding='utf-8')
+
+    def create_html(self, data_nodes, data_edges,path='graph_show.html'):
+        f = open(path, 'w+', encoding='utf-8')
         html = self.base.replace('data_nodes', str(data_nodes)).replace('data_edges', str(data_edges))
         f.write(html)
         f.close()
