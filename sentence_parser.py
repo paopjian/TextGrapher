@@ -30,7 +30,7 @@ class Keyword(TFIDF):
             freq[w] = freq.get(w, 0.0) + 1.0
 
         fre = freq.copy()
-        fre = sorted(fre.items(), key=lambda fre:fre[1], reverse=True)
+        # fre = sorted(fre.items(), key=lambda fre:fre[1], reverse=True)
         total = sum(freq.values())
         for k in freq:
             kw = k.word if allowPOS and withFlag else k
@@ -44,7 +44,7 @@ class LtpParser():
         LTP_DIR = "./ltp_data"
         self.lac = LAC(mode='lac')
         self.lac.load_customization('data/custom.txt', sep=None)
-        self.ddparser = DDParser()
+        self.ddparser = DDParser(encoding_model='transformer')
         self.fine_info = FineGrainedInfo
         self.keyword = Keyword()
         self.jieba = jieba
